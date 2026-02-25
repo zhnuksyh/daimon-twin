@@ -7,15 +7,22 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "ingest": "tsx scripts/ingest.ts",
+    "ingest:force": "tsx scripts/ingest.ts --force"
   },
   "dependencies": {
+    "@google/genai": "^1.42.0",
+    "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.97.0",
     "@tailwindcss/vite": "^4.2.1",
+    "dotenv": "^17.3.1",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.575.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "tailwindcss": "^4.2.1"
+    "tailwindcss": "^4.2.1",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
