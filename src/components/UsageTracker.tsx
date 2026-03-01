@@ -53,6 +53,31 @@ export default function UsageTracker({ isOpen, onClose }: UsageTrackerProps) {
                                 Gemini API token consumption tracked across all Daimon Twin subsystems.
                             </p>
 
+                            {/* Free Tier Quota */}
+                            <div className="bg-neutral-900/50 border border-neutral-800/60 rounded-xl p-4 flex flex-col">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2 text-neutral-300">
+                                        <Activity className="w-4 h-4 text-emerald-400" />
+                                        <span className="text-sm font-medium">Daily API Quota (Free Tier)</span>
+                                    </div>
+                                    <span className="text-sm font-bold text-neutral-200">
+                                        {Math.max(0, 1500 - stats.todayRequests).toLocaleString()} <span className="text-neutral-500 font-normal">requests left</span>
+                                    </span>
+                                </div>
+                                
+                                {/* Progress Bar */}
+                                <div className="w-full bg-neutral-950 rounded-full h-2.5 mb-1 mt-2 border border-neutral-800 overflow-hidden">
+                                    <div 
+                                        className={`h-full rounded-full transition-all duration-500 ${stats.todayRequests > 1350 ? 'bg-red-500' : stats.todayRequests > 1000 ? 'bg-amber-500' : 'bg-emerald-500'}`} 
+                                        style={{ width: `${Math.min((stats.todayRequests / 1500) * 100, 100)}%` }}
+                                    />
+                                </div>
+                                <div className="flex justify-between text-xs text-neutral-500 mt-1">
+                                    <span>{stats.todayRequests.toLocaleString()} used</span>
+                                    <span>1,500 limit</span>
+                                </div>
+                            </div>
+
                             {/* Main Stats Grid */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-neutral-900/50 border border-neutral-800/60 rounded-xl p-4 flex flex-col">

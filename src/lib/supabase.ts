@@ -130,6 +130,7 @@ export async function logApiUsage(
 
 export interface UsageStats {
     todayTokens: number;
+    todayRequests: number;
     monthTokens: number;
     totalTokens: number;
     byOperation: { operation_type: string; count: number; tokens: number }[];
@@ -142,7 +143,7 @@ export async function fetchUsageStats(): Promise<UsageStats> {
 
     if (error) {
         console.error('Failed to fetch usage stats:', error);
-        return { todayTokens: 0, monthTokens: 0, totalTokens: 0, byOperation: [] };
+        return { todayTokens: 0, todayRequests: 0, monthTokens: 0, totalTokens: 0, byOperation: [] };
     }
 
     const now = new Date();
@@ -150,6 +151,7 @@ export async function fetchUsageStats(): Promise<UsageStats> {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     let todayTokens = 0;
+    let todayRequests = 0;
     let monthTokens = 0;
     let totalTokens = 0;
     const opStats: Record<string, { count: number; tokens: number }> = {};
@@ -158,7 +160,10 @@ export async function fetchUsageStats(): Promise<UsageStats> {
         const date = new Date(row.created_at);
         totalTokens += row.total_tokens;
 
-        if (date >= startOfDay) todayTokens += row.total_tokens;
+        if (date >= startOfDay) {
+            todayTokens += row.total_tokens;
+            todayRequests += 1;
+        }
         if (date >= startOfMonth) monthTokens += row.total_tokens;
 
         if (!opStats[row.operation_type]) {
@@ -174,6 +179,6 @@ export async function fetchUsageStats(): Promise<UsageStats> {
         tokens: stats.tokens
     })).sort((a, b) => b.tokens - a.tokens);
 
-    return { todayTokens, monthTokens, totalTokens, byOperation };
+    return { todayTokens, todayRequests, monthTokens, totalTokens, byOperation };
 }
 
