@@ -1,5 +1,5 @@
 import { embedQuery } from './gemini';
-import { supabase } from './supabase';
+import { supabase, logApiUsage } from './supabase';
 
 // ============================================
 // CONFIG (Matching the Node.js ingest.ts script)
@@ -129,7 +129,10 @@ export async function processAndEmbedFile(
                 message: `Embedding chunk ${i + 1}/${chunks.length}...`
             });
 
-            const embedding = await embedQuery(enrichedText);
+            const { values: embedding, tokens } = await embedQuery(enrichedText);
+
+            // Log usage for this chunk
+            logApiUsage('embed_chunk', 'gemini-embedding-001', tokens, 0, tokens);
 
             const { error } = await supabase
                 .from('journal_embeddings')

@@ -3,7 +3,7 @@ import type { Message } from '../types';
 import { DAIMON_SYSTEM_PERSONA } from '../lib/persona';
 import { retrieveRelevantJournals, formatContext } from '../lib/rag';
 import { streamDaimonResponse } from '../lib/gemini';
-import { saveMessageToHistory, fetchSessionMessages } from '../lib/supabase';
+import { saveMessageToHistory, fetchSessionMessages, logApiUsage } from '../lib/supabase';
 
 interface UseChatConfig {
     setIsWorkbenchOpen: (isOpen: boolean) => void;
@@ -113,6 +113,9 @@ export function useChat({ setIsWorkbenchOpen, setWorkbenchContent }: UseChatConf
             }
 
             // 5. Stream the chunks to the UI or Workbench
+            let promptTokens = 0;
+            let candidatesTokens = 0;
+
             for await (const chunk of responseStream) {
                 if (chunk.text) {
                     daimonText += chunk.text;
@@ -124,11 +127,23 @@ export function useChat({ setIsWorkbenchOpen, setWorkbenchContent }: UseChatConf
                         ));
                     }
                 }
+
+                // The new SDK embeds usageMetadata in the last chunk
+                if (chunk.usageMetadata) {
+                    promptTokens = chunk.usageMetadata.promptTokenCount || 0;
+                    candidatesTokens = chunk.usageMetadata.candidatesTokenCount || 0;
+                }
             }
 
             // 6. Save Daimon's completed response to Supabase
             if (daimonText.trim()) {
                 saveMessageToHistory(sessionId, 'daimon', daimonText);
+            }
+
+            // 7. Log Token Usage
+            const totalTokens = promptTokens + candidatesTokens;
+            if (totalTokens > 0) {
+                logApiUsage('chat', 'gemini-2.5-flash', promptTokens, candidatesTokens, totalTokens);
             }
 
         } catch (error) {

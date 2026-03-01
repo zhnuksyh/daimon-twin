@@ -11,7 +11,7 @@ export const ai = new GoogleGenAI({ apiKey });
 // ============================================
 // EMBEDDING (For RAG Querying)
 // ============================================
-export async function embedQuery(text: string): Promise<number[]> {
+export async function embedQuery(text: string): Promise<{ values: number[], tokens: number }> {
     const response = await ai.models.embedContent({
         model: 'gemini-embedding-001',
         contents: text,
@@ -22,7 +22,14 @@ export async function embedQuery(text: string): Promise<number[]> {
         throw new Error('Failed to generate embedding for query.');
     }
 
-    return response.embeddings[0].values;
+    // Embedding API doesn't cleanly return usageMetadata in all SDK versions,
+    // so we estimate roughly 4 characters per token.
+    const estimatedTokens = Math.ceil(text.length / 4);
+
+    return {
+        values: response.embeddings[0].values,
+        tokens: estimatedTokens
+    };
 }
 
 // ============================================

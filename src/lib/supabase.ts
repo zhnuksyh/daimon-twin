@@ -105,3 +105,75 @@ export async function renameSession(sessionId: string, newTitle: string) {
         console.error('Failed to rename session:', error);
     }
 }
+
+export async function logApiUsage(
+    operationType: 'chat' | 'embed_query' | 'embed_chunk',
+    model: string,
+    promptTokens: number,
+    candidatesTokens: number,
+    totalTokens: number
+) {
+    const { error } = await supabase
+        .from('api_usage')
+        .insert({
+            operation_type: operationType,
+            model,
+            prompt_tokens: promptTokens,
+            candidates_tokens: candidatesTokens,
+            total_tokens: totalTokens
+        });
+
+    if (error) {
+        console.error('Failed to log API usage:', error);
+    }
+}
+
+export interface UsageStats {
+    todayTokens: number;
+    monthTokens: number;
+    totalTokens: number;
+    byOperation: { operation_type: string; count: number; tokens: number }[];
+}
+
+export async function fetchUsageStats(): Promise<UsageStats> {
+    const { data, error } = await supabase
+        .from('api_usage')
+        .select('created_at, operation_type, total_tokens');
+
+    if (error) {
+        console.error('Failed to fetch usage stats:', error);
+        return { todayTokens: 0, monthTokens: 0, totalTokens: 0, byOperation: [] };
+    }
+
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let todayTokens = 0;
+    let monthTokens = 0;
+    let totalTokens = 0;
+    const opStats: Record<string, { count: number; tokens: number }> = {};
+
+    for (const row of data || []) {
+        const date = new Date(row.created_at);
+        totalTokens += row.total_tokens;
+
+        if (date >= startOfDay) todayTokens += row.total_tokens;
+        if (date >= startOfMonth) monthTokens += row.total_tokens;
+
+        if (!opStats[row.operation_type]) {
+            opStats[row.operation_type] = { count: 0, tokens: 0 };
+        }
+        opStats[row.operation_type].count += 1;
+        opStats[row.operation_type].tokens += row.total_tokens;
+    }
+
+    const byOperation = Object.entries(opStats).map(([op, stats]) => ({
+        operation_type: op,
+        count: stats.count,
+        tokens: stats.tokens
+    })).sort((a, b) => b.tokens - a.tokens);
+
+    return { todayTokens, monthTokens, totalTokens, byOperation };
+}
+
