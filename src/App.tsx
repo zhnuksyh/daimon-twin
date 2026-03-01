@@ -6,10 +6,12 @@ import ChatArea from './components/ChatArea';
 import MessageInput from './components/MessageInput';
 import Workbench from './components/Workbench';
 import Sidebar from './components/Sidebar';
+import KnowledgeBase from './components/KnowledgeBase';
 
 export default function App() {
   const [isWorkbenchOpen, setIsWorkbenchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isKBOpen, setIsKBOpen] = useState(false);
   const [workbenchContent, setWorkbenchContent] = useState('# The Empty Canvas\n\n...');
 
   const { messages, inputValue, setInputValue, isTyping, handleSend, loadSession, resetSession, sessionId, sessionUpdatePulse } = useChat({
@@ -29,7 +31,8 @@ export default function App() {
   }
 
   return (
-    // MAIN WRAPPER: Uses deep grays (#0a0a0a) for a dark-academia, low-stimulation environment.
+    <>
+    {/* MAIN WRAPPER: Uses deep grays (#0a0a0a) for a dark-academia, low-stimulation environment. */}
     <div 
         className={`h-screen overflow-hidden bg-[#0a0a0a] text-neutral-300 font-sans selection:bg-red-900/40 grid transition-all duration-300 ease-in-out ${gridCols}`}
     >
@@ -46,19 +49,19 @@ export default function App() {
       </div>
 
       {/* === CHAT COLUMN === */}
-      {/* Center column shrinks and grows between the panels */}
       <div className={`flex flex-col items-center h-full max-w-4xl mx-auto w-full relative min-h-0 overflow-hidden ${isSidebarOpen || isWorkbenchOpen ? 'hidden lg:flex' : 'flex'}`}>
         <Header 
             isWorkbenchOpen={isWorkbenchOpen} 
             toggleWorkbench={() => {
                 setIsWorkbenchOpen(!isWorkbenchOpen);
-                if (!isWorkbenchOpen) setIsSidebarOpen(false); // Mobile: close other panel
+                if (!isWorkbenchOpen) setIsSidebarOpen(false);
             }} 
             isSidebarOpen={isSidebarOpen}
             toggleSidebar={() => {
                 setIsSidebarOpen(!isSidebarOpen);
-                if (!isSidebarOpen) setIsWorkbenchOpen(false); // Mobile: close other panel
+                if (!isSidebarOpen) setIsWorkbenchOpen(false);
             }}
+            onOpenKnowledgeBase={() => setIsKBOpen(true)}
         />
         <ChatArea messages={messages} isTyping={isTyping} />
         <MessageInput
@@ -79,5 +82,9 @@ export default function App() {
       </div>
 
     </div>
+
+    {/* === KNOWLEDGE BASE MODAL === */}
+    <KnowledgeBase isOpen={isKBOpen} onClose={() => setIsKBOpen(false)} />
+    </>
   );
 }
