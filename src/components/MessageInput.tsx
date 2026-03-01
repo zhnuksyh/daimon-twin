@@ -127,12 +127,6 @@ export default function MessageInput({ inputValue, setInputValue, isTyping, onSe
           <Send className="w-4 h-4" />
         </button>
       </form>
-      
-      <div className="text-center mt-3">
-        <p className="text-[10px] text-neutral-600 tracking-wider uppercase">
-          Powered by Gemini API & Supabase pgvector
-        </p>
-      </div>
     </footer>
   );
 }
