@@ -6,9 +6,10 @@ interface HeaderProps {
     isSidebarOpen: boolean;
     toggleSidebar: () => void;
     onOpenKnowledgeBase: () => void;
+    onOpenUsageTracker: () => void;
 }
 
-export default function Header({ isWorkbenchOpen, toggleWorkbench, isSidebarOpen, toggleSidebar, onOpenKnowledgeBase }: HeaderProps) {
+export default function Header({ isWorkbenchOpen, toggleWorkbench, isSidebarOpen, toggleSidebar, onOpenKnowledgeBase, onOpenUsageTracker }: HeaderProps) {
   return (
     // Sticky header containing branding and future feature toggles.
     <header className="w-full border-b border-neutral-800/60 bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
@@ -37,7 +38,7 @@ export default function Header({ isWorkbenchOpen, toggleWorkbench, isSidebarOpen
         <button onClick={onOpenKnowledgeBase} className="hover:text-neutral-300 transition-colors" title="Knowledge Base">
           <BookOpen className="w-5 h-5" />
         </button>
-        <button className="hover:text-neutral-300 transition-colors" title="System Logs">
+        <button onClick={onOpenUsageTracker} className="hover:text-neutral-300 transition-colors" title="System Telemetry">
           <Terminal className="w-5 h-5" />
         </button>
         <button 

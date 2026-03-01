@@ -7,11 +7,13 @@ import MessageInput from './components/MessageInput';
 import Workbench from './components/Workbench';
 import Sidebar from './components/Sidebar';
 import KnowledgeBase from './components/KnowledgeBase';
+import UsageTracker from './components/UsageTracker';
 
 export default function App() {
   const [isWorkbenchOpen, setIsWorkbenchOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isKBOpen, setIsKBOpen] = useState(false);
+  const [isUsageOpen, setIsUsageOpen] = useState(false);
   const [workbenchContent, setWorkbenchContent] = useState('# The Empty Canvas\n\n...');
 
   const { messages, inputValue, setInputValue, isTyping, handleSend, loadSession, resetSession, sessionId, sessionUpdatePulse } = useChat({
@@ -62,6 +64,7 @@ export default function App() {
                 if (!isSidebarOpen) setIsWorkbenchOpen(false);
             }}
             onOpenKnowledgeBase={() => setIsKBOpen(true)}
+            onOpenUsageTracker={() => setIsUsageOpen(true)}
         />
         <ChatArea messages={messages} isTyping={isTyping} />
         <MessageInput
@@ -85,6 +88,9 @@ export default function App() {
 
     {/* === KNOWLEDGE BASE MODAL === */}
     <KnowledgeBase isOpen={isKBOpen} onClose={() => setIsKBOpen(false)} />
+
+    {/* === SYSTEM TELEMETRY (USAGE TRACKER) MODAL === */}
+    <UsageTracker isOpen={isUsageOpen} onClose={() => setIsUsageOpen(false)} />
     </>
   );
 }
