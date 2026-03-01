@@ -35,7 +35,7 @@ export default function Workbench({ isOpen, content, setContent }: WorkbenchProp
     if (!isOpen) return null;
 
     return (
-        <aside className="border-l border-neutral-800 bg-[#0d0d0d] flex flex-col h-screen overflow-hidden">
+        <aside className="border-l border-neutral-800 bg-[#0d0d0d] flex flex-col h-full overflow-hidden">
             {/* Header / Tabs */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 shrink-0">
                 <h2 className="text-lg font-medium text-neutral-300">The Workbench</h2>

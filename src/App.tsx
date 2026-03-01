@@ -26,7 +26,7 @@ export default function App() {
     >
 
       {/* === CHAT COLUMN === */}
-      <div className="flex flex-col items-center h-full max-w-4xl mx-auto w-full relative">
+      <div className="flex flex-col items-center h-full max-w-4xl mx-auto w-full relative min-h-0 overflow-hidden">
         <Header 
             isWorkbenchOpen={isWorkbenchOpen} 
             toggleWorkbench={() => setIsWorkbenchOpen(!isWorkbenchOpen)} 
@@ -41,7 +41,7 @@ export default function App() {
       </div>
 
       {/* === WORKBENCH PANEL === */}
-      <div className={isWorkbenchOpen ? 'block' : 'hidden lg:hidden'}>
+      <div className={isWorkbenchOpen ? 'block min-h-0 h-full overflow-hidden' : 'hidden lg:hidden'}>
         <Workbench 
             isOpen={isWorkbenchOpen} 
             content={workbenchContent}
