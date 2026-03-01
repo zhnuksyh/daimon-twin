@@ -1,6 +1,11 @@
-import { Hexagon, BookOpen, Terminal } from 'lucide-react';
+import { Hexagon, BookOpen, Terminal, PanelRight, PanelRightClose } from 'lucide-react';
 
-export default function Header() {
+interface HeaderProps {
+    isWorkbenchOpen: boolean;
+    toggleWorkbench: () => void;
+}
+
+export default function Header({ isWorkbenchOpen, toggleWorkbench }: HeaderProps) {
   return (
     // Sticky header containing branding and future feature toggles.
     <header className="w-full border-b border-neutral-800/60 bg-[#0a0a0a]/80 backdrop-blur-md sticky top-0 z-10 px-6 py-4 flex justify-between items-center">
@@ -11,13 +16,18 @@ export default function Header() {
         </h1>
       </div>
       <div className="flex gap-4 text-neutral-500">
-        {/* Future toggle to view raw vector embeddings / memory core */}
         <button className="hover:text-neutral-300 transition-colors" title="Memory Core">
           <BookOpen className="w-5 h-5" />
         </button>
-        {/* Future toggle to switch between "Engineer Mode" and "Philosopher Mode" */}
         <button className="hover:text-neutral-300 transition-colors" title="System Logs">
           <Terminal className="w-5 h-5" />
+        </button>
+        <button 
+          onClick={toggleWorkbench}
+          className={`transition-colors ${isWorkbenchOpen ? 'text-neutral-300' : 'hover:text-neutral-300'}`} 
+          title="Toggle Workbench"
+        >
+          {isWorkbenchOpen ? <PanelRightClose className="w-5 h-5" /> : <PanelRight className="w-5 h-5" />}
         </button>
       </div>
     </header>
