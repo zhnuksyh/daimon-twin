@@ -6,8 +6,8 @@ Daimon Twin is a highly personalized, RAG-powered AI ghostwriter and companion. 
 
 <!-- DYNAMIC_SECTION:START -->
 ## 🧠 Memory Core Status
-- **Journal Entries Ingested:** 2
-- **Last Sync:** Sun, 01 Mar 2026 08:59:01 GMT
+- **Journal Entries Ingested:** 0
+- **Last Sync:** Sun, 01 Mar 2026 09:01:11 GMT
 <!-- DYNAMIC_SECTION:END -->
 
 ## 🏗️ Architecture & Stack
