@@ -1,20 +1,42 @@
 import { useState } from 'react';
 import type { Message } from '../types';
-import { MOCK_CONVERSATION } from '../data/mockConversation';
 import { DAIMON_SYSTEM_PERSONA } from '../lib/persona';
 import { retrieveRelevantJournals, formatContext } from '../lib/rag';
 import { streamDaimonResponse } from '../lib/gemini';
+import { saveMessageToHistory, fetchSessionMessages } from '../lib/supabase';
 
 interface UseChatConfig {
     setIsWorkbenchOpen: (isOpen: boolean) => void;
-    setWorkbenchContent: (updater: (prev: string) => string) => void;
+    setWorkbenchContent: React.Dispatch<React.SetStateAction<string>>;
     workbenchContent: string;
 }
 
 export function useChat({ setIsWorkbenchOpen, setWorkbenchContent }: UseChatConfig) {
-    const [messages, setMessages] = useState<Message[]>(MOCK_CONVERSATION);
+    const [sessionId, setSessionId] = useState<string>(() => crypto.randomUUID());
+    const [messages, setMessages] = useState<Message[]>([]); // Default to empty instead of MOCK for clean history
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [sessionUpdatePulse, setSessionUpdatePulse] = useState(0);
+
+    // Initial greeting if no messages
+    if (messages.length === 0) {
+        setMessages([{
+            id: 'init',
+            role: 'daimon',
+            text: 'I am here. What is on your mind?',
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }]);
+    }
+
+    const loadSession = async (id: string) => {
+        setSessionId(id);
+        const history = await fetchSessionMessages(id);
+        if (history.length > 0) {
+            setMessages(history);
+        } else {
+            setMessages([]);
+        }
+    };
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -31,6 +53,15 @@ export function useChat({ setIsWorkbenchOpen, setWorkbenchContent }: UseChatConf
         setMessages(prev => [...prev, newUserMsg]);
         setInputValue('');
         setIsTyping(true);
+
+        const isFirstMessage = messages.length === 1; // 1 is the default 'init' greeting
+
+        // Save user message to Supabase (fire and forget)
+        saveMessageToHistory(sessionId, 'user', currentInput).then(() => {
+            if (isFirstMessage) {
+                setSessionUpdatePulse(p => p + 1); // trigger sidebar to reload new session
+            }
+        });
 
         const daimonMsgId = (Date.now() + 1).toString();
         let daimonText = '';
@@ -95,17 +126,31 @@ export function useChat({ setIsWorkbenchOpen, setWorkbenchContent }: UseChatConf
                 }
             }
 
+            // 6. Save Daimon's completed response to Supabase
+            if (daimonText.trim()) {
+                saveMessageToHistory(sessionId, 'daimon', daimonText);
+            }
+
         } catch (error) {
             console.error('Error in chat pipeline:', error);
             setIsTyping(false);
+
+            const errorMsg = "*Connection to memory core severed. I am unable to process that right now.*";
             setMessages(prev => [...prev, {
                 id: daimonMsgId,
                 role: 'daimon',
-                text: "*Connection to memory core severed. I am unable to process that right now.*",
+                text: errorMsg,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
             }]);
+            saveMessageToHistory(sessionId, 'daimon', errorMsg);
         }
     };
 
-    return { messages, inputValue, setInputValue, isTyping, handleSend };
+    const resetSession = () => {
+        setSessionId(crypto.randomUUID());
+        setMessages([]);
+        setWorkbenchContent('# The Empty Canvas\n\n...');
+    };
+
+    return { messages, inputValue, setInputValue, isTyping, handleSend, loadSession, resetSession, sessionId, sessionUpdatePulse };
 }
