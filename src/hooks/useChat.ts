@@ -1,26 +1,24 @@
 import { useState } from 'react';
 import type { Message } from '../types';
 import { MOCK_CONVERSATION } from '../data/mockConversation';
+import { DAIMON_SYSTEM_PERSONA } from '../lib/persona';
+import { retrieveRelevantJournals, formatContext } from '../lib/rag';
+import { streamDaimonResponse } from '../lib/gemini';
 
 export function useChat() {
-    // --- STATE MANAGEMENT ---
-    // messages: Stores the chat history for the current session.
-    // inputValue: Controlled state for the textarea.
-    // isTyping: Manages the UI loading state while waiting for the LLM response.
     const [messages, setMessages] = useState<Message[]>(MOCK_CONVERSATION);
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
 
-    // --- MESSAGE HANDLING (THE CORE LOOP) ---
-    const handleSend = (e: React.FormEvent) => {
+    const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!inputValue.trim()) return;
 
-        // 1. Optimistic UI Update: Immediately show user's message
+        const currentInput = inputValue;
         const newUserMsg: Message = {
             id: Date.now().toString(),
             role: 'user',
-            text: inputValue,
+            text: currentInput,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         };
 
@@ -28,22 +26,49 @@ export function useChat() {
         setInputValue('');
         setIsTyping(true);
 
-        // 2. MOCKED API PIPELINE
-        // IN THE FUTURE, this block will be replaced with:
-        // a. Vectorize user input via Supabase/gte-small.
-        // b. Query Supabase pgvector for top 3 similar journal entries.
-        // c. Construct prompt (System Persona + Retrieved Context + User Input).
-        // d. Send to Gemini API and stream response back to UI.
-        setTimeout(() => {
-            const newDaimonMsg: Message = {
-                id: (Date.now() + 1).toString(),
+        const daimonMsgId = (Date.now() + 1).toString();
+        let daimonText = '';
+
+        try {
+            // 1. Retrieve Context from Supabase
+            const contextChunks = await retrieveRelevantJournals(currentInput);
+            const formattedContext = formatContext(contextChunks);
+
+            // 2. Construct Prompt
+            const prompt = DAIMON_SYSTEM_PERSONA.replace('{context}', formattedContext) + '\n\nUser Input: ' + currentInput;
+
+            // 3. Call Gemini (Streaming)
+            const responseStream = await streamDaimonResponse(prompt, messages);
+
+            // 4. Create an empty message placeholder in state
+            setIsTyping(false); // We got the stream connection, stop the spinning loader
+            setMessages(prev => [...prev, {
+                id: daimonMsgId,
                 role: 'daimon',
-                text: "I hear you. The friction between who we are and who we want to be operates at such a subconscious level, it's confusing. But understanding the architecture precedes just writing the code. Let's take it one step at a time.",
+                text: '',
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
-            setMessages(prev => [...prev, newDaimonMsg]);
+            }]);
+
+            // 5. Stream the chunks to the UI
+            for await (const chunk of responseStream) {
+                if (chunk.text) {
+                    daimonText += chunk.text;
+                    setMessages(prev => prev.map(msg =>
+                        msg.id === daimonMsgId ? { ...msg, text: daimonText } : msg
+                    ));
+                }
+            }
+
+        } catch (error) {
+            console.error('Error in chat pipeline:', error);
             setIsTyping(false);
-        }, 2000);
+            setMessages(prev => [...prev, {
+                id: daimonMsgId,
+                role: 'daimon',
+                text: "*Connection to memory core severed. I am unable to process that right now.*",
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            }]);
+        }
     };
 
     return { messages, inputValue, setInputValue, isTyping, handleSend };
