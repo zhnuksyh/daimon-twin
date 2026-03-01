@@ -7,8 +7,14 @@ import MessageInput from './components/MessageInput';
 import Workbench from './components/Workbench';
 
 export default function App() {
-  const { messages, inputValue, setInputValue, isTyping, handleSend } = useChat();
   const [isWorkbenchOpen, setIsWorkbenchOpen] = useState(false);
+  const [workbenchContent, setWorkbenchContent] = useState('# The Empty Canvas\n\n...');
+
+  const { messages, inputValue, setInputValue, isTyping, handleSend } = useChat({
+      setIsWorkbenchOpen,
+      setWorkbenchContent,
+      workbenchContent
+  });
 
   return (
     // MAIN WRAPPER: Uses deep grays (#0a0a0a) for a dark-academia, low-stimulation environment.
@@ -36,7 +42,11 @@ export default function App() {
 
       {/* === WORKBENCH PANEL === */}
       <div className={isWorkbenchOpen ? 'block' : 'hidden lg:hidden'}>
-        <Workbench isOpen={isWorkbenchOpen} />
+        <Workbench 
+            isOpen={isWorkbenchOpen} 
+            content={workbenchContent}
+            setContent={setWorkbenchContent}
+        />
       </div>
 
     </div>

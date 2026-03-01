@@ -5,11 +5,32 @@ import { Pencil, Eye, Save } from 'lucide-react';
 
 interface WorkbenchProps {
     isOpen: boolean;
+    content: string;
+    setContent: (content: string) => void;
 }
 
-export default function Workbench({ isOpen }: WorkbenchProps) {
-    const [mode, setMode] = useState<'edit' | 'preview'>('edit');
-    const [content, setContent] = useState<string>('# The Empty Canvas\n\nStart drafting your thoughts here...');
+export default function Workbench({ isOpen, content, setContent }: WorkbenchProps) {
+    const [mode, setMode] = useState<'edit' | 'preview'>('preview');
+
+    // Downloads the content directly as a local .md file
+    const handleSave = () => {
+        if (!content.trim()) return;
+        
+        const blob = new Blob([content], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        
+        // Use a simple title heuristic or timestamp
+        const firstLine = content.split('\n')[0].replace(/^#+\s*/, '').trim();
+        const filename = firstLine ? `${firstLine.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.md` : `draft-${Date.now()}.md`;
+
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
 
     if (!isOpen) return null;
 
@@ -57,8 +78,11 @@ export default function Workbench({ isOpen }: WorkbenchProps) {
             
             {/* Footer / Actions */}
             <div className="p-4 border-t border-neutral-800 shrink-0 flex justify-end">
-                <button className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-neutral-300 rounded-md transition-colors text-sm font-medium border border-neutral-800 hover:border-neutral-700">
-                    <Save size={16} /> Save to Memory
+                <button 
+                    onClick={handleSave}
+                    className="flex items-center gap-2 px-4 py-2 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-neutral-300 rounded-md transition-colors text-sm font-medium border border-neutral-800 hover:border-neutral-700"
+                >
+                    <Save size={16} /> Save to Disk
                 </button>
             </div>
         </aside>
