@@ -23,7 +23,7 @@ export default function ChatArea({ messages, isTyping }: ChatAreaProps) {
   }, [messages, isTyping]);
 
   return (
-    <main className="flex-1 w-full px-6 py-8 flex flex-col gap-8 overflow-y-auto pb-32">
+    <main className="flex-1 w-full px-6 py-8 flex flex-col gap-8 overflow-y-auto pb-32 scrollbar-hide">
       <div className="text-center space-y-2 mb-8">
         <p className="text-sm tracking-widest uppercase text-neutral-600 font-medium">Session Initialized</p>
         <p className="text-xs text-neutral-700 font-serif italic">"The Architect of His Own Heart"</p>

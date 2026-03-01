@@ -20,13 +20,13 @@ export default function App() {
     // MAIN WRAPPER: Uses deep grays (#0a0a0a) for a dark-academia, low-stimulation environment.
     // CSS Grid layout: dynamically toggles between single chat column and dual column.
     <div 
-        className={`min-h-screen bg-[#0a0a0a] text-neutral-300 font-sans selection:bg-red-900/40 grid transition-all duration-300 ease-in-out ${
+        className={`h-screen overflow-hidden bg-[#0a0a0a] text-neutral-300 font-sans selection:bg-red-900/40 grid transition-all duration-300 ease-in-out ${
             isWorkbenchOpen ? 'grid-cols-1 lg:grid-cols-[1fr_minmax(400px,1fr)]' : 'grid-cols-1'
         }`}
     >
 
       {/* === CHAT COLUMN === */}
-      <div className="flex flex-col items-center min-h-screen max-w-4xl mx-auto w-full relative">
+      <div className="flex flex-col items-center h-full max-w-4xl mx-auto w-full relative">
         <Header 
             isWorkbenchOpen={isWorkbenchOpen} 
             toggleWorkbench={() => setIsWorkbenchOpen(!isWorkbenchOpen)} 
